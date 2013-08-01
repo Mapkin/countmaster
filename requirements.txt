@@ -1,0 +1,13 @@
+Flask==0.10.1
+Flask-gzip==0.1
+Jinja2==2.7
+MarkupSafe==0.18
+Werkzeug==0.9.1
+cffi==0.6
+distribute==0.6.45
+flask-heroku==0.1.4
+gunicorn==0.17.4
+itsdangerous==0.21
+redis==2.7.6
+simplejson==3.3.0
+wsgiref==0.1.2

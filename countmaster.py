@@ -247,5 +247,34 @@ def increment_counter(counter):
     return make_json_response(response)
 
 
+@app.route("/api/v1/counters/<counter>/counts")
+def counter_stats(counter):
+    """Return all stored counts for ``counter``.
+
+    :rtype: json
+    :returns: A status code of 200 OK on success, along with
+        a dictionary of ``date: count`` entries.
+
+    Usage::
+
+        $ curl -u YOUR_API_KEY /api/v1/counters/test/counts
+        {
+            "2013-08-17": "172",
+            "2013-08-18": "268"
+        }
+
+    """
+    # If the counter does not exist, return an error.
+    key = counter.lower()
+    if not app.redis.exists(key):
+        return make_json_response({
+                'type': "invalid_resource_error",
+                'message': "The resource '{}' does not exist.".format(counter),
+            }, 404)
+
+    values = app.redis.hgetall(key)
+    return make_json_response(values)
+
+
 if __name__ == "__main__":
     app.run()

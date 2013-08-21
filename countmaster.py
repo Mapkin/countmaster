@@ -3,7 +3,7 @@
 import redis
 
 from datetime import date
-from flask import Flask, json, make_response, request, url_for
+from flask import Flask, abort, json, make_response, request, url_for
 from flask_gzip import Gzip
 from flask_heroku import Heroku
 
@@ -110,6 +110,18 @@ def authenticate_client():
 
 
 ###
+### Error handling.
+###
+@app.errorhandler(404)
+def resource_not_found(error):
+    data = {
+        'type': "invalid_resource_error",
+        'message': "The resource '{}' does not exist.".format(request.path),
+    }
+    return make_json_response(data, 404)
+
+
+###
 ### Routes.
 ###
 
@@ -142,7 +154,8 @@ def get_counter(counter):
     """Get the specified counter's value for today.
 
     :rtype: json
-    :returns: The counter's current value for today.
+    :returns: The counter's current value for today, or a 404 if
+        the counter doesn't exist.
 
     Usage::
 
@@ -155,7 +168,7 @@ def get_counter(counter):
     """
     today = date.today().isoformat()
 
-    count = app.redis.hget(counter.lower(), today) or 0
+    count = app.redis.hget(counter.lower(), today) or abort(404)
     response = {
         'count': long(count),
         'date': today,
@@ -267,10 +280,7 @@ def counter_stats(counter):
     # If the counter does not exist, return an error.
     key = counter.lower()
     if not app.redis.exists(key):
-        return make_json_response({
-                'type': "invalid_resource_error",
-                'message': "The resource '{}' does not exist.".format(counter),
-            }, 404)
+        abort(404)
 
     values = app.redis.hgetall(key)
     return make_json_response(values)
